@@ -13,7 +13,7 @@ import { RouterLink } from 'vue-router'
                     <RouterLink to="/upload">上传</RouterLink>
                 </el-menu-item>
                 <el-menu-item index="1-1">
-                    <RouterLink to="/">提交记录</RouterLink>
+                    <RouterLink to="/record">提交记录</RouterLink>
                 </el-menu-item>
                 <el-menu-item index="1-2">
                     <RouterLink to="/result">结果</RouterLink>
