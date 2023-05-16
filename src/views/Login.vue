@@ -16,10 +16,10 @@
       <el-col :span="7" class="login-card">
         <!--loginForm-->
         <el-form :model="loginForm" :rules="rules" ref="loginForm" label-width="21%" class="loginForm">
-          <el-form-item label="账户" prop="username" style="width: 380px">
+          <el-form-item label="账户" prop="username" style="width: 100%">
             <el-input v-model="loginForm.username"></el-input>
           </el-form-item>
-          <el-form-item label="密码" prop="password" style="width: 380px">
+          <el-form-item label="密码" prop="password" style="width: 100%">
             <el-input type="password" v-model="loginForm.password"></el-input>
           </el-form-item>
           <el-form-item class="btn-ground">
@@ -75,7 +75,7 @@ export default {
           axios.post('http://10.249.69.159:8080/login', this.loginForm).then(response => {
             // 拿到结果
             let res = response.data;
-            // let message = res.message;
+            let message = res.msg;
             // res.data就是服务器返回的token
             let token = res.data;
             // 判断结果
@@ -87,8 +87,10 @@ export default {
               router.push('/record');
             } else {
               /*打印错误信息*/
-              ElMessage.error("登陆失败");
+              ElMessage.error(message);
             }
+          }).catch(() => {
+            ElMessage.error("网络错误，登陆失败");
           })
         } else {
           console.log('error submit!!');
@@ -108,7 +110,7 @@ export default {
           axios.post('http://10.249.69.159:8080/register', this.loginForm).then(response => {
             // 拿到结果
             let res = response.data;
-            let message = res.message;
+            let message = res.msg;
             // res.data就是服务器返回的token
             let token = res.data;
             // 判断结果
@@ -161,7 +163,6 @@ export default {
   height: 100%;
   background-image: url("../assets/login-background.jpg");
   background-size: 120%;
-
 }
 
 .btn-ground {

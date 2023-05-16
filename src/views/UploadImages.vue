@@ -3,20 +3,22 @@
     <el-container class="layout-container">
         <el-header>
             <span>上传数据</span>
-            <!-- <span class="toolbar">
-                <el-dropdown>
-                    <el-icon style="margin-right: 8px; margin-top: 1px">
-                        <setting />
-                    </el-icon>
+            <span class="toolbar">
+                <el-dropdown class="el-dropdown" @command="handleCommand">
+                    <span class="el-dropdown-link">
+                        账户设置<el-icon class="el-icon--right"><arrow-down /></el-icon>
+                    </span>
                     <template #dropdown>
                         <el-dropdown-menu>
-                            <el-dropdown-item>View</el-dropdown-item>
-                            <el-dropdown-item>Add</el-dropdown-item>
-                            <el-dropdown-item>Delete</el-dropdown-item>
+                            <el-dropdown-item :command="{ operation: 'logout' }">
+                                <el-icon>
+                                    <CircleClose />
+                                </el-icon>退出登陆
+                            </el-dropdown-item>
                         </el-dropdown-menu>
                     </template>
                 </el-dropdown>
-            </span> -->
+            </span>
         </el-header>
         <el-container>
             <SideBar />
@@ -25,21 +27,8 @@
                     <el-input class="inputDescription" v-model="textarea" type="textarea" placeholder="数据描述" clearable
                         autosize />
                 </div>
-                <el-button class="callDiaButton" type="primary" size="large" plain @click="showDialog">上传</el-button>
+                <el-button class="callDiaButton" type="primary" size="large" plain @click="showDialog">上传图片</el-button>
                 <div class="el-upload__tip" slot="tip">只能上传jpg文件，且不超过2GB</div>
-                <!-- <el-dialog title="请再次确认" :v-model="dialogVisible" width="30%">
-            <span>确定要开始上传图片吗？（上传完毕前请勿关闭网页）</span>
-            <template #footer>
-                <span class="dialog-footer">
-                    <el-button @click="dialogVisible = false">取消</el-button>
-                    <el-upload class="uploadButton" name="images" v-model:file-list="fileList"
-                        action="http://10.249.69.159:8080/upload" multiple :limit="2000" show-file-list=true
-                        :data="{ time: Date.now(), description: textarea }">
-                        <el-button type="primary" size="large" round @click="dialogVisible = false">确认上传</el-button>
-                    </el-upload>
-                </span>
-            </template>
-        </el-dialog> -->
                 <el-dialog title="选择数据" v-model="dialogVisible" width="40%">
                     <el-upload class="upload" drag action="http://10.249.69.159:8080/upload" multiple :limit="2000"
                         :show-file-list="true" name="images" :data="{ timeStamp: Date.now(), description: textarea }"
@@ -50,7 +39,7 @@
                     </el-upload>
                     <template #footer>
                         <span class="dialog-footer">
-                            <el-button size="large" round @click="hidDialog">取 消</el-button>
+                            <el-button size="large" round @click="hidDialog">关 闭</el-button>
                             <!-- <el-button type="primary" size="large" round @click="hidDialog">确 定</el-button> -->
                         </span>
                     </template>
@@ -66,6 +55,7 @@
 import { ElMessage } from 'element-plus';
 import { ref } from 'vue'
 import SideBar from '../components/SideBar.vue'
+import router from '../router';
 const textarea = ref('');
 const dialogVisible = ref(false);
 const token = window.sessionStorage.getItem("token");
@@ -78,40 +68,12 @@ function hidDialog() {
 function handleError(error) {
     ElMessage.error(error + ',' + "上传失败!")
 }
-// const handleUpload = () => {
-//     ElMessageBox.confirm('确认上传吗？', 'confirm', {
-//         confirmButtonText: 'OK',
-//         cancelButtonText: 'Cancel',
-//         type: 'info',
-//     })
-//         .then(() => {
-            // 发送post请求
-            // axios.post('http://10.249.69.159:8080/upload', {
-            //     time: Date.now(),
-            //     description: textarea
-            // })
-            //     .then((response) => {
-            //         let res = response.data;
-            //         console.log(res);
-            //     })
-            //     .catch(error => console.error(error));
-            // if(textarea.value === '') {
-            //     ElMessage.error("数据描述不能为空。");
-            //     return;
-            // }
-            // ElMessage({
-            //     type: 'success',
-            //     message: '开始上传...',
-            // })
-            // textarea.value = ''
-//         })
-//         .catch(() => {
-//             ElMessage({
-//                 type: 'info',
-//                 message: 'Upload canceled',
-//             })
-//         })
-// }
+function handleCommand(obj) {
+    if (obj.operation === 'logout') {
+        window.sessionStorage.clear();
+        router.push('/');
+    }
+}
 </script>
 
 <style scoped>
@@ -119,9 +81,9 @@ function handleError(error) {
     text-align: center;
     line-height: 60px;
     position: relative;
-    background-color: #74b8fc;
+    background-color: #74baff;
     color: var(--el-text-color-primary);
-    /* align-items: center; */
+    align-items: center;
     box-shadow: 0 10px 5px -5px rgb(155, 159, 161);
 }
 
@@ -130,7 +92,7 @@ function handleError(error) {
 }
 
 .el-aside {
-    background: var(--el-color-info-light-7);
+    background: var(--el-color-info-light-8);
 }
 
 .el-menu {
@@ -147,7 +109,7 @@ function handleError(error) {
     align-items: center;
     justify-content: center;
     height: 100%;
-    right: 0px;
+    right: 50px;
 }
 
 .layout-container {
@@ -184,5 +146,15 @@ function handleError(error) {
 
 .callDiaButton {
     margin-left: 40px;
+}
+
+.el-dropdown-link {
+    font-size: medium;
+    color: rgb(32, 32, 32);
+}
+
+.el-dropdown {
+    float: right;
+    line-height: 60px;
 }
 </style>

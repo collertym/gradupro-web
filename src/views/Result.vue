@@ -1,20 +1,41 @@
 <template>
     <el-container class="layout-container">
-        <el-header>结果记录</el-header>
+        <el-header>
+            <span>结果记录</span>
+            <span class="toolbar">
+                <el-dropdown class="el-dropdown" @command="handleCommand">
+                    <span class="el-dropdown-link">
+                        账户设置<el-icon class="el-icon--right"><arrow-down /></el-icon>
+                    </span>
+                    <template #dropdown>
+                        <el-dropdown-menu>
+                            <el-dropdown-item :command="{ operation: 'logout' }">
+                                <el-icon>
+                                    <CircleClose />
+                                </el-icon>退出登陆
+                            </el-dropdown-item>
+                        </el-dropdown-menu>
+                    </template>
+                </el-dropdown>
+            </span>
+        </el-header>
         <el-container>
             <SideBar />
             <el-main>
                 <el-scrollbar>
                     <el-table :data="tableData" stripe style="width: 100%" highlight-current-row>
-                        <el-table-column type="index" width="80" />
-                        <el-table-column property="time" label="提交时间" width=200 />
+                        <el-table-column type="index" width="40" />
+                        <el-table-column property="time" label="提交时间" width=160 />
                         <el-table-column property="message" label="描述" width=600 />
-                        <el-table-column property="state" label="状态" width=200 />
-                        <el-table-column label="操作" width=150>
+                        <el-table-column property="state" label="状态" width=150 />
+                        <el-table-column label="操作" width=265>
                             <template #default="scope">
                                 <el-button type="primary" size="small" round
                                     @click="handleDownloadLabels(scope.row)">下载标签</el-button>
-                                <el-button type="danger" size="small" round @click="handleDelete(scope.row)">删除</el-button>
+                                <el-button type="primary" size="small" round
+                                    @click="handleDownloadImages(scope.row)">下载图片</el-button>
+                                <el-button type="danger" size="small" round
+                                    @click="handleDelete(scope.row)">删除结果</el-button>
                                 <!-- <el-button link type="primary" size="small">Edit</el-button> -->
                             </template>
                         </el-table-column>>
@@ -31,6 +52,8 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import axios from 'axios'
 import { long2Time, time2Long } from '../utils/transTime'
 import SideBar from '../components/SideBar.vue'
+import router from '../router';
+
 const tableData = ref([]);
 axios.get('http://10.249.69.159:8080/result', { headers: { 'Authorization': window.sessionStorage.getItem('token') } })
     .then((response) => {
@@ -53,7 +76,7 @@ axios.get('http://10.249.69.159:8080/result', { headers: { 'Authorization': wind
 
 function handleDownloadLabels(row) {
     let token = window.sessionStorage.getItem('token');
-    ElMessageBox.confirm('确认下载结果吗？', '确认', {
+    ElMessageBox.confirm('确认下载标签吗？', '确认', {
         confirmButtonText: 'OK',
         cancelButtonText: 'Cancel',
         type: 'info',
@@ -66,6 +89,49 @@ function handleDownloadLabels(row) {
             })
             let timeStamp = time2Long(row.time);
             axios.get(`http://10.249.69.159:8080/downloadLabelsResults/${timeStamp}`, { headers: { 'Content-Type': 'application/json', 'Authorization': token }, responseType: 'blob' })
+                .then((response) => {
+                    const fileName = response.headers['content-disposition'].match(/filename="(.+)"/)[1];
+                    if (response.data.code <= 0)
+                        ElMessage.error('Oops, this is a error, please retry');
+
+                    // 创建下载链接
+                    const url = URL.createObjectURL(response.data);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = fileName;
+
+                    // 模拟点击下载链接
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+
+                    // 释放 Blob 对象
+                    URL.revokeObjectURL(url);
+                });
+        })
+        .catch(() => {
+            ElMessage({
+                type: 'info',
+                message: 'Download canceled',
+            })
+        })
+}
+
+function handleDownloadImages(row) {
+    let token = window.sessionStorage.getItem('token');
+    ElMessageBox.confirm('确认下载图片吗？', '确认', {
+        confirmButtonText: 'OK',
+        cancelButtonText: 'Cancel',
+        type: 'info',
+    })
+        .then(() => {
+            // 下载
+            ElMessage({
+                type: 'success',
+                message: 'Downloading ...',
+            })
+            let timeStamp = time2Long(row.time);
+            axios.get(`http://10.249.69.159:8080/downloadImagesResults/${timeStamp}`, { headers: { 'Content-Type': 'application/json', 'Authorization': token }, responseType: 'blob' })
                 .then((response) => {
                     const fileName = response.headers['content-disposition'].match(/filename="(.+)"/)[1];
                     if (response.data.code <= 0)
@@ -130,6 +196,13 @@ function handleDelete(row) {
                 })
         })
 }
+
+function handleCommand(obj) {
+    if (obj.operation === 'logout') {
+        window.sessionStorage.clear();
+        router.push('/');
+    }
+}
 </script>
 
 <style scoped>
@@ -137,7 +210,7 @@ function handleDelete(row) {
     text-align: center;
     line-height: 60px;
     position: relative;
-    background-color: #6bb5fe;
+    background-color: #74baff;
     color: var(--el-text-color-primary);
     align-items: center;
     box-shadow: 0 10px 5px -5px rgb(155, 159, 161);
@@ -182,5 +255,15 @@ function handleDelete(row) {
     flex: 1;
     position: relative;
     overflow-x: auto;
+}
+
+.el-dropdown-link {
+    font-size: medium;
+    color: rgb(32, 32, 32);
+}
+
+.el-dropdown {
+    float: right;
+    line-height: 60px;
 }
 </style>
